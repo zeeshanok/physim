@@ -33,6 +33,7 @@ class _HomePageState extends State<HomePage> {
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -40,7 +41,7 @@ class _HomePageState extends State<HomePage> {
             ),
             const Expanded(child: GameWindow()),
             const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              padding: EdgeInsets.symmetric(horizontal: 2),
               child: SizedBox(
                 width: 300,
                 child: EditSection(),

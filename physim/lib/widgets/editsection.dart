@@ -3,10 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:get_it/get_it.dart';
 import 'package:physim/game/game.dart';
+import 'package:physim/widgets/vector_editor.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 import 'package:physim/entities/entity.dart';
 
-final decimalRegExp = RegExp(r'^\d+([.,]?\d*)?$');
+final decimalRegExp = RegExp(r'^-?\d*([.,]?\d*)?$');
 final _getIt = GetIt.instance;
 
 class EditSection extends HookWidget {
@@ -15,12 +16,21 @@ class EditSection extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final game = useListenable(_getIt<Game>());
-    // final game = _getIt<Game>();
+    final selected = game.getSelected();
+    final scrollController = useScrollController();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: buildFormList(game.getSelected()),
-    );
+    return selected != null
+        ? Scrollbar(
+            controller: scrollController,
+            thickness: 0.5,
+            hoverThickness: 0.5,
+            isAlwaysShown: true,
+            child: ListView(
+              controller: scrollController,
+              children: buildFormList(selected),
+            ),
+          )
+        : Container();
   }
 }
 
@@ -78,14 +88,10 @@ class TypeDependentFormField extends HookWidget {
             d.copyWith(floatingLabelBehavior: FloatingLabelBehavior.never);
         final formatters = [FilteringTextInputFormatter.allow(decimalRegExp)];
         return [
-          Expanded(
-              child: TextField(
-                  decoration: decor.copyWith(labelText: 'x'),
-                  inputFormatters: formatters)),
-          Expanded(
-              child: TextField(
-                  decoration: decor.copyWith(labelText: 'y'),
-                  inputFormatters: formatters))
+          Vector2Editor(
+            inputDecoration: decor,
+            inputFormatters: formatters,
+          )
         ];
 
       case Color:
@@ -100,28 +106,23 @@ class TypeDependentFormField extends HookWidget {
   Widget build(BuildContext context) {
     final w = buildField();
     assert(w != null, 'The type: `$type` cannot be used as a text field');
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 2),
-          child: Text(label),
-        ),
-        w!.length > 1
-            ? Row(
-                children: w
-                    .map((e) => Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label),
+          const SizedBox(height: 4),
+          w!.length > 1
+              ? Row(
+                  children: w
+                      .map((e) => Expanded(
                             child: e,
-                          ),
-                        ))
-                    .toList())
-            : Padding(
-                padding: const EdgeInsets.only(left: 4),
-                child: w[0],
-              )
-      ],
+                          ))
+                      .toList())
+              : w[0]
+        ],
+      ),
     );
   }
 }

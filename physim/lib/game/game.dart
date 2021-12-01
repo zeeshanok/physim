@@ -17,9 +17,9 @@ class Game extends ChangeNotifier {
   double lastFrameTime = 1;
   double get fps => lastFrameTime == 0 ? 1 : 1 / lastFrameTime;
 
-  Type _selected;
-  Type getSelected<T extends Entity>() => _selected;
-  void setSelected<T extends Entity>(Type type) {
+  Type? _selected;
+  Type? getSelected<T extends Entity>() => _selected;
+  void setSelected<T extends Entity>(Type? type) {
     _selected = type;
     notifyListeners();
   }
@@ -35,9 +35,7 @@ class Game extends ChangeNotifier {
     } catch (_) {}
   }
 
-  Game()
-      : entities = [],
-        _selected = Ball;
+  Game() : entities = [];
 
   void initialize() {}
 
@@ -52,7 +50,9 @@ class Game extends ChangeNotifier {
     for (var entity in entities) {
       entity.render(canvas);
     }
-    renderGhost(canvas, _selected, mouse.toVector2());
+    if (_selected != null) {
+      renderGhost(canvas, _selected!, mouse.toVector2());
+    }
     final painter = TextPainter(
         text: TextSpan(text: "${fps.round()} FPS", children: [
           TextSpan(text: "\n${entities.length} entities"),
@@ -66,9 +66,9 @@ class Game extends ChangeNotifier {
   }
 
   void onHover(PointerHoverEvent event) {
-    // if (event.localPosition != Offset.zero) {
-    mouse = event.localPosition;
-    // }
+    if (event.localPosition != Offset.zero) {
+      mouse = event.localPosition;
+    }
   }
 
   void togglePause() {
@@ -90,23 +90,30 @@ class Game extends ChangeNotifier {
   }
 
   void onMouseClick([Offset? m]) {
-    debugPrint('click');
-    final e = (_selected == Ball
-        ? Ball(
-            position: (m ?? mouse).toVector2(),
-            id: (lastEntityId ?? 1) + 1,
-            radius: 20,
-            acceleration: Vector2(0.3, 0.2),
-          )
-        : Box(
+    MotionBoundary? item;
+    switch (_selected) {
+      case Ball:
+        item = Ball(
+          position: (m ?? mouse).toVector2(),
+          id: (lastEntityId ?? 1) + 1,
+          radius: 20,
+          acceleration: Vector2(0.3, 0.2),
+        );
+        break;
+      case Box:
+        item = Box(
             id: (lastEntityId ?? 1) + 1,
             position: (m ?? mouse).toVector2(),
             width: 30,
             height: 30,
             acceleration: Vector2(0.2, 0.1),
-            color: const Color(0xFFFFFFFF)))
-      ..setBounds(screenBounds);
-    entities.add(e);
+            color: const Color(0xFFFFFFFF));
+        break;
+    }
+    if (item != null) {
+      item.setBounds(screenBounds);
+      entities.add(item);
+    }
   }
 
   void addBall() {
@@ -151,9 +158,12 @@ class GameRenderBox extends RenderBox {
   void paint(PaintingContext context, Offset offset) {
     context.canvas.save();
     context.canvas.translate(offset.dx, offset.dy);
-    context.canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height),
-        Paint()..color = Colors.black);
-    game.render(context.canvas);
+    context.pushClipRect(needsCompositing, Offset.zero,
+        Rect.fromLTWH(0, 0, size.width, size.height), (context, offset) {
+      context.canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height),
+          Paint()..color = Colors.black);
+      game.render(context.canvas);
+    });
     context.canvas.restore();
   }
 

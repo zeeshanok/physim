@@ -21,6 +21,7 @@ class RoundedIconButton extends StatelessWidget {
       onPressed: onPressed,
       child: icon,
       style: ButtonStyle(
+          padding: MaterialStateProperty.all(const EdgeInsets.all(2)),
           minimumSize: MaterialStateProperty.all(Size.square(sideLength)),
           shadowColor: MaterialStateProperty.all(Colors.transparent),
           overlayColor: MaterialStateProperty.all(Colors.transparent),
@@ -38,9 +39,9 @@ class RoundedIconButton extends StatelessWidget {
               return Theme.of(context).colorScheme.primary;
             }
             if (states.any(focusStates.contains)) {
-              return Colors.grey[600];
+              return Colors.grey;
             }
-            return Colors.grey[800];
+            return Colors.grey[700];
           }),
           side: MaterialStateProperty.resolveWith((states) {
             return BorderSide(
@@ -48,7 +49,7 @@ class RoundedIconButton extends StatelessWidget {
                     ? Theme.of(context).colorScheme.primary
                     : states.any(focusStates.contains)
                         ? Colors.grey[900]!
-                        : Colors.grey[850]!);
+                        : Colors.grey[700]!);
           }),
           splashFactory: NoSplash.splashFactory),
     );
