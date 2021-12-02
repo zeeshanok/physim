@@ -12,7 +12,9 @@ void main() {
 
   runApp(MaterialApp(
     home: const HomePage(),
-    theme: ThemeData.dark(),
+    theme: ThemeData.dark().copyWith(
+      scrollbarTheme: scrollTheme,
+    ),
   ));
 }
 
@@ -42,10 +44,7 @@ class _HomePageState extends State<HomePage> {
             const Expanded(child: GameWindow()),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 2),
-              child: SizedBox(
-                width: 300,
-                child: EditSection(),
-              ),
+              child: EditSection(),
             )
           ],
         ),
@@ -144,3 +143,15 @@ class TogglePauseIntent extends Intent {
 class AddBallIntent extends Intent {
   const AddBallIntent();
 }
+
+final scrollTheme = ScrollbarThemeData(
+  thumbColor: MaterialStateProperty.resolveWith((states) =>
+      states.any({MaterialState.hovered, MaterialState.pressed}.contains)
+          ? Colors.white.withAlpha(230)
+          : Colors.white.withAlpha(100)),
+  thickness: MaterialStateProperty.resolveWith(
+    (states) => states.contains(MaterialState.hovered) ? 4 : 1,
+  ),
+  mainAxisMargin: 0,
+  crossAxisMargin: 4,
+);

@@ -44,9 +44,11 @@ Map<String, Type>? toTypeMap(Type type) {
       };
     case Box:
       return {
-        "Position": Vector2,
         "Width": double,
         "Height": double,
+        "Position": Vector2,
+        "Velocity": Vector2,
+        "Acceleration": Vector2,
         "Color": Color,
         "Filled": bool
       };

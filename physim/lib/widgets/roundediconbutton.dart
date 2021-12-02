@@ -4,15 +4,17 @@ class RoundedIconButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final Widget icon;
   final bool selected;
-  final double sideLength;
+  final double height;
+  final double width;
 
-  const RoundedIconButton({
-    Key? key,
-    required this.onPressed,
-    required this.icon,
-    bool? selected,
-    this.sideLength = 60,
-  })  : selected = selected ?? false,
+  const RoundedIconButton(
+      {Key? key,
+      required this.onPressed,
+      required this.icon,
+      bool? selected,
+      this.height = 60,
+      this.width = 60})
+      : selected = selected ?? false,
         super(key: key);
 
   @override
@@ -22,7 +24,7 @@ class RoundedIconButton extends StatelessWidget {
       child: icon,
       style: ButtonStyle(
           padding: MaterialStateProperty.all(const EdgeInsets.all(2)),
-          minimumSize: MaterialStateProperty.all(Size.square(sideLength)),
+          minimumSize: MaterialStateProperty.all(Size(width, height)),
           shadowColor: MaterialStateProperty.all(Colors.transparent),
           overlayColor: MaterialStateProperty.all(Colors.transparent),
           backgroundColor: MaterialStateProperty.resolveWith((states) {

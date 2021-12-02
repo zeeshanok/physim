@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:get_it/get_it.dart';
 import 'package:physim/game/game.dart';
+import 'package:physim/utils.dart';
 import 'package:physim/widgets/vector_editor.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 import 'package:physim/entities/entity.dart';
 
-final decimalRegExp = RegExp(r'^-?\d*([.,]?\d*)?$');
 final _getIt = GetIt.instance;
 
 class EditSection extends HookWidget {
@@ -17,20 +17,47 @@ class EditSection extends HookWidget {
   Widget build(BuildContext context) {
     final game = useListenable(_getIt<Game>());
     final selected = game.getSelected();
-    final scrollController = useScrollController();
+    final animationController =
+        useAnimationController(duration: const Duration(milliseconds: 200));
+    final animation = CurvedAnimation(
+      parent: animationController,
+      curve: Curves.easeOutCubic,
+      reverseCurve: Curves.easeInCubic,
+    );
 
-    return selected != null
-        ? Scrollbar(
-            controller: scrollController,
-            thickness: 0.5,
-            hoverThickness: 0.5,
-            isAlwaysShown: true,
-            child: ListView(
-              controller: scrollController,
-              children: buildFormList(selected),
-            ),
-          )
-        : Container();
+    useValueChanged<Type?, void>(selected, (_, __) {
+      if (selected == null) {
+        animationController.reverse();
+      } else {
+        animationController.forward();
+      }
+    });
+
+    return SizeTransition(
+        sizeFactor: animation,
+        axisAlignment: -1,
+        axis: Axis.horizontal,
+        child: SizedBox(
+            width: 300,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 100),
+              child: selected != null
+                  ? Column(children: [
+                      Text(selected.toString(),
+                          style: Theme.of(context)
+                              .textTheme
+                              .headline5
+                              ?.copyWith(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      Expanded(
+                          child: ListView(
+                        physics: const BouncingScrollPhysics(),
+                        // controller: scrollController,
+                        children: buildFormList(selected),
+                      ))
+                    ])
+                  : Container(),
+            )));
   }
 }
 
@@ -55,17 +82,23 @@ class TypeDependentFormField extends HookWidget {
 
   List<Widget>? buildField() {
     final border = OutlineInputBorder(
-        borderSide: BorderSide(width: 1, color: Colors.grey[800]!),
-        borderRadius: BorderRadius.circular(3));
+      borderSide: BorderSide(width: 1, color: Colors.grey[800]!),
+      borderRadius: BorderRadius.circular(3),
+    );
     final d = InputDecoration(
-        isCollapsed: true,
-        floatingLabelBehavior: FloatingLabelBehavior.never,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-        enabledBorder: border,
-        focusedBorder: border,
-        disabledBorder: border,
-        focusedErrorBorder: border,
-        errorBorder: border);
+      isCollapsed: true,
+      floatingLabelBehavior: FloatingLabelBehavior.never,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+      enabledBorder: border,
+      focusedBorder: border,
+      disabledBorder: border,
+      focusedErrorBorder: border,
+      errorBorder: border,
+      suffixStyle: TextStyle(
+        fontSize: 15,
+        color: Colors.white.withAlpha(100),
+      ),
+    );
     switch (type) {
       case int:
         return [
