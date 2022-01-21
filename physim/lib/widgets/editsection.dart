@@ -62,7 +62,7 @@ class EditSection extends HookWidget {
 }
 
 List<Widget> buildFormList(Type type) {
-  final map = toTypeMap(type)!;
+  final map = toTypeMap(type);
   return [
     for (final i in map.entries)
       Padding(
@@ -133,6 +133,7 @@ class TypeDependentFormField extends HookWidget {
       case bool:
         return [Checkbox(value: true, onChanged: (_) {})];
     }
+    return null;
   }
 
   @override

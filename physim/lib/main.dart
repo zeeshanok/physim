@@ -1,3 +1,4 @@
+import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it/get_it.dart';
@@ -5,6 +6,8 @@ import 'package:physim/game/game.dart';
 import 'package:physim/widgets/editsection.dart';
 import 'package:physim/widgets/roundediconbutton.dart';
 import 'package:physim/widgets/toolbox.dart';
+
+const windowBorder = Color(0xFF0000FF);
 
 void main() {
   final getIt = GetIt.instance;
@@ -16,6 +19,14 @@ void main() {
       scrollbarTheme: scrollTheme,
     ),
   ));
+
+  doWhenWindowReady(() {
+    const size = Size(1000, 600);
+    appWindow.size = appWindow.minSize = size;
+    appWindow.alignment = Alignment.center;
+    appWindow.title = "Physim";
+    appWindow.show();
+  });
 }
 
 class HomePage extends StatefulWidget {
@@ -28,28 +39,69 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final FocusNode focusNode = FocusNode();
 
+  final game = GetIt.instance<Game>();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF090909),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        backgroundColor: const Color(0xFF090909),
+        body: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Toolbox(),
+            SizedBox(
+              height: 30,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  MoveWindow(
+                      child: const Align(
+                          alignment: Alignment.center,
+                          child: Text(
+                            'Physics Simulator',
+                            style: TextStyle(color: Colors.grey),
+                          ))),
+                  const Align(
+                      alignment: Alignment.centerRight, child: WindowButtons()),
+                ],
+              ),
             ),
-            const Expanded(child: GameWindow()),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 2),
-              child: EditSection(),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Toolbox(),
+                    ),
+                    const Expanded(child: GameWindow()),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 2),
+                      child: EditSection(),
+                    )
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  RoundedIconButton(
+                    onPressed: () => setState(game.togglePause),
+                    icon: Icon((game.paused ?? false)
+                        ? Icons.play_arrow
+                        : Icons.pause),
+                  ),
+                  const SizedBox(width: 8),
+                  RoundedIconButton(
+                      onPressed: game.clearAllBalls,
+                      icon: const Icon(Icons.delete))
+                ],
+              ),
             )
           ],
-        ),
-      ),
-    );
+        ));
   }
 }
 
@@ -79,8 +131,6 @@ class _GameWindowState extends State<GameWindow> {
             actions: <Type, Action<Intent>>{
               TogglePauseIntent: CallbackAction<TogglePauseIntent>(
                   onInvoke: (_) => setState(game.togglePause)),
-              AddBallIntent:
-                  CallbackAction<AddBallIntent>(onInvoke: (_) => game.addBall())
             },
             autofocus: true,
             focusNode: focusNode,
@@ -117,20 +167,6 @@ class _GameWindowState extends State<GameWindow> {
             ),
           ),
         ),
-        const SizedBox(height: 4),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            RoundedIconButton(
-              onPressed: () => setState(game.togglePause),
-              icon:
-                  Icon((game.paused ?? false) ? Icons.play_arrow : Icons.pause),
-            ),
-            const SizedBox(width: 8),
-            RoundedIconButton(
-                onPressed: game.clearAllBalls, icon: const Icon(Icons.delete))
-          ],
-        )
       ],
     );
   }
@@ -155,3 +191,106 @@ final scrollTheme = ScrollbarThemeData(
   mainAxisMargin: 0,
   crossAxisMargin: 4,
 );
+
+final defaultStyle = ButtonStyle(
+  splashFactory: NoSplash.splashFactory,
+  foregroundColor: MaterialStateProperty.all(Colors.white),
+  shadowColor: MaterialStateProperty.all(Colors.transparent),
+  overlayColor: MaterialStateProperty.all(Colors.transparent),
+  side: MaterialStateProperty.all(BorderSide.none),
+  shape: MaterialStateProperty.all(
+      const ContinuousRectangleBorder(borderRadius: BorderRadius.zero)),
+  minimumSize: MaterialStateProperty.all(const Size(45, 25)),
+  padding: MaterialStateProperty.all(EdgeInsets.zero),
+  elevation: MaterialStateProperty.all(0),
+);
+
+final closeStyle = defaultStyle.copyWith(
+  backgroundColor: MaterialStateProperty.resolveWith((states) {
+    if (states.contains(MaterialState.pressed)) {
+      return Colors.red[600];
+    }
+    if (states.contains(MaterialState.hovered)) {
+      return Colors.red;
+    }
+    return Colors.transparent;
+  }),
+);
+
+final maximizeStyle = defaultStyle.copyWith(
+  backgroundColor: MaterialStateProperty.resolveWith((states) {
+    if (states.contains(MaterialState.pressed)) {
+      return Colors.grey[700];
+    }
+    if (states.contains(MaterialState.hovered)) {
+      return Colors.grey[800];
+    }
+    return Colors.transparent;
+  }),
+);
+
+class WindowButtons extends StatelessWidget {
+  const WindowButtons({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: const [
+        MinimizeWinButton(),
+        MaximizeWinButton(),
+        CloseWinButton(),
+      ],
+    );
+  }
+}
+
+class MinimizeWinButton extends StatelessWidget {
+  const MinimizeWinButton({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: () => appWindow.minimize(),
+      child: const Icon(
+        Icons.remove,
+        size: 16,
+      ),
+      style: maximizeStyle,
+    );
+  }
+}
+
+class MaximizeWinButton extends StatelessWidget {
+  const MaximizeWinButton({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: () => appWindow.maximizeOrRestore(),
+      child: const Icon(
+        Icons.crop_square,
+        size: 16,
+      ),
+      style: maximizeStyle,
+    );
+  }
+}
+
+class CloseWinButton extends StatelessWidget {
+  const CloseWinButton({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: () => appWindow.close(),
+      child: const Icon(
+        Icons.close,
+        size: 16,
+      ),
+      style: closeStyle,
+    );
+  }
+}

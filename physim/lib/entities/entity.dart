@@ -31,7 +31,7 @@ extension RoundTo on double {
   }
 }
 
-Map<String, Type>? toTypeMap(Type type) {
+Map<String, Type> toTypeMap(Type type) {
   switch (type) {
     case Ball:
       return {
@@ -53,6 +53,7 @@ Map<String, Type>? toTypeMap(Type type) {
         "Filled": bool
       };
   }
+  return {};
 }
 
 void renderGhost(Canvas canvas, Type type, Vector2 position) {

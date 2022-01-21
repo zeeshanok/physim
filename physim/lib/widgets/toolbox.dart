@@ -14,7 +14,7 @@ class Toolbox extends HookWidget {
   final toolList = {
     null: const Icon(Icons.mouse),
     Ball: const Icon(Icons.circle),
-    Box: const Icon(Icons.crop_square)
+    Box: const Icon(Icons.crop_square),
   };
 
   @override

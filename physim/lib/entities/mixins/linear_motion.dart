@@ -7,13 +7,13 @@ mixin LinearMotion on Entity {
   Vector2 acceleration = Vector2.zero();
 
   void updateLinearMotion(double dt) {
-    velocity += acceleration;
+    velocity += acceleration * dt; // v = u + at
     if (acceleration.x == 0 && velocity.x.abs() < 0.009) {
       velocity.x = 0;
     }
     if (acceleration.y == 0 && velocity.y.abs() < 0.009) {
       velocity.y = 0;
     }
-    position += velocity;
+    position += velocity * dt;
   }
 }
