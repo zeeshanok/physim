@@ -31,7 +31,6 @@ class Game extends ChangeNotifier {
   bool? get paused => gameLoop?.paused;
 
   final List<Entity> entities;
-  final Fluid fluid = Fluid(id: -2);
 
   int _lastEntityId = 0;
   int get lastEntityId {
@@ -50,21 +49,18 @@ class Game extends ChangeNotifier {
     for (var element in entities) {
       element.update(dt);
     }
-    fluid.update(dt);
   }
 
   void render(Canvas canvas) {
     for (var entity in entities) {
       entity.render(canvas);
     }
-    fluid.render(canvas);
     if (_selected != null) {
       renderGhost(canvas, _selected!, mouse.toVector2());
     }
     final painter = TextPainter(
         text: TextSpan(text: "${fps.round()} FPS", children: [
-          TextSpan(
-              text: "\n${entities.length + fluid.particles.length} entities"),
+          TextSpan(text: "\n${entities.length} entities"),
         ]),
         textDirection: TextDirection.ltr);
     painter.layout();
@@ -75,9 +71,9 @@ class Game extends ChangeNotifier {
   }
 
   void onHover(PointerHoverEvent event) {
-    if (event.localPosition != Offset.zero) {
-      mouse = event.localPosition;
-    }
+    // if (event.localPosition != Offset.zero) {
+    mouse = event.localPosition;
+    // }
   }
 
   void togglePause() {
@@ -118,12 +114,6 @@ class Game extends ChangeNotifier {
             acceleration: Vector2(10, 10),
             color: const Color(0xFFFFFFFF));
         break;
-      case FluidParticle:
-        fluid.addParticle(
-            FluidParticle(id: lastEntityId + 1, position: mousePos)
-              ..setBounds(screenBounds));
-
-        break;
     }
     if (item != null) {
       item.setBounds(screenBounds);
@@ -131,9 +121,8 @@ class Game extends ChangeNotifier {
     }
   }
 
-  void clearAllBalls() {
+  void clearAllEntities() {
     entities.clear();
-    fluid.particles.clear();
   }
 }
 

@@ -1,6 +1,7 @@
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:get_it/get_it.dart';
 import 'package:physim/game/game.dart';
 import 'package:physim/widgets/editsection.dart';
@@ -64,44 +65,90 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: Toolbox(),
-                    ),
-                    const Expanded(child: GameWindow()),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 2),
-                      child: EditSection(),
-                    )
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  RoundedIconButton(
-                    onPressed: () => setState(game.togglePause),
-                    icon: Icon((game.paused ?? false)
-                        ? Icons.play_arrow
-                        : Icons.pause),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    child: Toolbox(),
                   ),
-                  const SizedBox(width: 8),
-                  RoundedIconButton(
-                      onPressed: game.clearAllBalls,
-                      icon: const Icon(Icons.delete))
+                  Expanded(
+                    child: Stack(children: [
+                      const GameWindow(),
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: HoveringGameControls(game: game),
+                        ),
+                      ),
+                    ]),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 2),
+                    child: EditSection(),
+                  )
                 ],
               ),
-            )
+            ),
+            const SizedBox(height: 4)
           ],
         ));
+  }
+}
+
+class HoveringGameControls extends HookWidget {
+  const HoveringGameControls({
+    Key? key,
+    required this.game,
+  }) : super(key: key);
+
+  final Game game;
+
+  @override
+  Widget build(BuildContext context) {
+    final hovering = useState(false);
+    return MouseRegion(
+      onEnter: (event) => hovering.value = true,
+      onExit: (event) => hovering.value = false,
+      opaque: false,
+      child: SizedBox.square(
+        dimension: 200,
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 200),
+          opacity: hovering.value ? 1 : 0.3,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              RoundedIconButton(
+                icon: const Icon(Icons.pause),
+                backgroundColor: Colors.black,
+                onPressed: () {},
+                height: 50,
+                width: 70,
+              ),
+              const SizedBox(height: 4),
+              RoundedIconButton(
+                  backgroundColor: Colors.black,
+                  height: 40,
+                  width: 70,
+                  onPressed: () {
+                    game.clearAllEntities();
+                  },
+                  icon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.delete, size: 16),
+                      SizedBox(width: 4),
+                      Text("Clear")
+                    ],
+                  ))
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

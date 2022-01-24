@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:physim/widgets/expander_button.dart';
 import 'package:physim/widgets/roundediconbutton.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 import 'package:physim/utils.dart';
@@ -67,6 +68,7 @@ class Vector2Editor extends HookWidget {
           children: [
             Expanded(
               child: TextFormField(
+                cursorWidth: 1,
                 initialValue: vector.value.x.toString(),
                 onChanged: (val) {
                   final n = double.tryParse(val);
@@ -88,6 +90,7 @@ class Vector2Editor extends HookWidget {
             const SizedBox(width: 8),
             Expanded(
               child: TextFormField(
+                cursorWidth: 1,
                 initialValue: vector.value.y.toString(),
                 decoration: inputDecoration?.copyWith(
                   labelText: 'y',
@@ -106,19 +109,10 @@ class Vector2Editor extends HookWidget {
               ),
             ),
             const SizedBox(width: 8),
-            RoundedIconButton(
-              onPressed: () {
-                isEditingExpanded.value = !isEditingExpanded.value;
-              },
-              icon: RotationTransition(
-                  turns: animation.drive(Tween(begin: 0, end: 0.5)),
-                  child: const Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    size: 15,
-                  )),
-              height: 30,
-              width: 30,
-              selected: isEditingExpanded.value,
+            ExpanderButton(
+              isExpanded: isEditingExpanded.value,
+              onPressed: () =>
+                  isEditingExpanded.value = !isEditingExpanded.value,
             )
           ],
         ),

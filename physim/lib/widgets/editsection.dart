@@ -4,6 +4,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:get_it/get_it.dart';
 import 'package:physim/game/game.dart';
 import 'package:physim/utils.dart';
+import 'package:physim/widgets/color_editor.dart';
 import 'package:physim/widgets/vector_editor.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 import 'package:physim/entities/entity.dart';
@@ -42,20 +43,25 @@ class EditSection extends HookWidget {
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 100),
               child: selected != null
-                  ? Column(children: [
-                      Text(selected.toString(),
-                          style: Theme.of(context)
-                              .textTheme
-                              .headline5
-                              ?.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      Expanded(
-                          child: ListView(
-                        physics: const BouncingScrollPhysics(),
-                        // controller: scrollController,
-                        children: buildFormList(selected),
-                      ))
-                    ])
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Text(selected.toString(),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headline5
+                                  ?.copyWith(fontWeight: FontWeight.bold)),
+                        ),
+                        const SizedBox(height: 8),
+                        Expanded(
+                            child: ListView(
+                          physics: const BouncingScrollPhysics(),
+                          children: buildFormList(selected),
+                        ))
+                      ],
+                    )
                   : Container(),
             )));
   }
@@ -66,7 +72,7 @@ List<Widget> buildFormList(Type type) {
   return [
     for (final i in map.entries)
       Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.fromLTRB(4, 6, 10, 6),
         child: TypeDependentFormField(label: i.key, type: i.value),
       )
   ];
@@ -103,6 +109,7 @@ class TypeDependentFormField extends HookWidget {
       case int:
         return [
           TextField(
+            cursorWidth: 1,
             decoration: d,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           )
@@ -110,12 +117,18 @@ class TypeDependentFormField extends HookWidget {
       case double:
         return [
           TextField(
+            cursorWidth: 1,
             decoration: d,
             inputFormatters: [FilteringTextInputFormatter.allow(decimalRegExp)],
           )
         ];
       case String:
-        return [TextField(decoration: d)];
+        return [
+          TextField(
+            cursorWidth: 1,
+            decoration: d,
+          )
+        ];
       case Vector2:
         final decor =
             d.copyWith(floatingLabelBehavior: FloatingLabelBehavior.never);
@@ -128,7 +141,13 @@ class TypeDependentFormField extends HookWidget {
         ];
 
       case Color:
-        return [Container(color: Colors.red, width: 50, height: 50)];
+        return [
+          ColorEditor(
+            onChanged: (c) {},
+            color: const Color(0xFFFF149D),
+            inputDecoration: d,
+          )
+        ];
 
       case bool:
         return [Checkbox(value: true, onChanged: (_) {})];
@@ -140,23 +159,17 @@ class TypeDependentFormField extends HookWidget {
   Widget build(BuildContext context) {
     final w = buildField();
     assert(w != null, 'The type: `$type` cannot be used as a text field');
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label),
-          const SizedBox(height: 4),
-          w!.length > 1
-              ? Row(
-                  children: w
-                      .map((e) => Expanded(
-                            child: e,
-                          ))
-                      .toList())
-              : w[0]
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label),
+        const SizedBox(height: 4),
+        w!.length > 1
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: w.map((e) => e).toList())
+            : w[0]
+      ],
     );
   }
 }
