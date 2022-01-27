@@ -1,4 +1,4 @@
 # physim
-A physics simulation written in dart using flutter
+A physics simulator written in dart using flutter
 
 (hell of a wip)
